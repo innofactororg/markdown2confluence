@@ -1,15 +1,11 @@
 import json
 import logging
 import requests
-from urllib3.exceptions import InsecureRequestWarning
 from requests.auth import HTTPBasicAuth
 from config.get_config import get_config
 
 CONFIG = get_config()
 
-
-# Suppress only the single warning from urllib3 needed.
-requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 #
 # Function for create page with CONTENT
@@ -49,7 +45,7 @@ def create_page(title, content, parent_page_id, login, password):
     # check of input of the ParentPageID
     if parent_page_id is None:
         # this is the root of out pages tree
-        newPagejsonQuery['ancestors'][0]['id'] = CONFIG["counfluence_parent_page_id"]
+        newPagejsonQuery['ancestors'][0]['id'] = CONFIG["confluence_parent_page_id"]
     else:
         newPagejsonQuery['ancestors'][0]['id'] = str(
             parent_page_id)  # this is the branch of our tree
@@ -74,7 +70,7 @@ def create_page(title, content, parent_page_id, login, password):
         url=CONFIG["confluence_url"] + "content/",
         json=newPagejsonQuery,
         auth=HTTPBasicAuth(login, password),
-        verify=False)
+        verify=True)
 
     logging.debug(response.status_code)
     if response.status_code == 200:
@@ -96,7 +92,7 @@ def search_pages(login, password):
     # GET /rest/api/search?cql=text~%7B%22SEARCH%20PATTERN%22%7D+and+type=page+and+space=%2212345%22&limit=1000 HTTP/1.1" 200
     # "cqlQuery": "parent=301176119 and text~{\"SEARCH PATTERN\"} and type=page and space=\"12345\""
 
-    logging.debug("Calling URL: " + str(CONFIG["confluence_url"]) + "search?cql=parent=" + str(CONFIG["counfluence_parent_page_id"]) +
+    logging.debug("Calling URL: " + str(CONFIG["confluence_url"]) + "search?cql=parent=" + str(CONFIG["confluence_parent_page_id"]) +
                   "+and+text~{\"" + str(CONFIG["confluence_search_pattern"]) +
                   "\"}+and+type=page+and+space=\"" +
                   str(CONFIG["confluence_space"]) +
@@ -108,7 +104,7 @@ def search_pages(login, password):
         str(CONFIG["confluence_space"]) +
         "\"&limit=1000",
         auth=HTTPBasicAuth(login, password),
-        verify=False)
+        verify=True)
 
     logging.debug(response.status_code)
     logging.debug(json.dumps(json.loads(
@@ -124,7 +120,7 @@ def search_pages(login, password):
                      " with title: " + result['content']['title'])
 
     logging.debug("Found pages in space " + str(CONFIG["confluence_space"]) + " and parent page: " +
-                  str(CONFIG["counfluence_parent_page_id"]) + " and search text: " +
+                  str(CONFIG["confluence_parent_page_id"]) + " and search text: " +
                   str(CONFIG["confluence_search_pattern"]) + ": " + str(foundPages))
 
     return foundPages
@@ -144,7 +140,7 @@ def delete_pages(pages_id_list, login, password):
         response = requests.delete(
             url=str(CONFIG["confluence_url"]) + "content/" + str(page),
             auth=HTTPBasicAuth(login, password),
-            verify=False)
+            verify=True)
         logging.debug("Delete status code: " + str(response.status_code))
         if response.status_code == 204:
             logging.info("Deleted successfully")
@@ -191,7 +187,7 @@ def attach_file(page_id, attached_file, login, password):
         data=attached_values,
         auth=HTTPBasicAuth(login, password),
         headers=attached_header,
-        verify=False  # Not recommended in production
+        verify=True  # Not recommended in production
     )
 
     # Log the response status code
