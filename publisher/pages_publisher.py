@@ -3,94 +3,101 @@ import os
 import markdown
 import re
 from config.get_config import get_config
-from pages_controller import create_page
-from pages_controller import attach_file
+from pages_controller import create_page, attach_file
 
 
 CONFIG = get_config()
 
 
-# parentPageID has the default input parameter "None" (it means ROOT)
-def publish_folder(folder, login, password, parentPageID=None):
-    logging.info("Publishing folder: " + folder)
+def publish_folder(folder, login, password, parent_page_id=None):
+    logging.info(f"Publishing folder: {folder}")
     for entry in os.scandir(folder):
         if entry.is_dir():
-            # create page with the DISPLAY CHILDREN macro for the directories in the folder with MD files
-            logging.info("Found directory: " + str(entry.path))
-            currentPageID = create_page(title=str(entry.name),
-                                        # name of the DISPLAY CHILDREN macro
-                                        content="<ac:structured-macro ac:name=\"children\" ac:schema-version=\"2\" ac:macro-id=\"80b8c33e-cc87-4987-8f88-dd36ee991b15\"/>",
-                                        parentPageID=parentPageID,
-                                        login=login,
-                                        password=password)
-
-            # publish files in the current folder
-            publish_folder(folder=entry.path, login=login,
-                           password=password, parentPageID=currentPageID)
+            publish_directory(entry, login, password, parent_page_id)
 
         elif entry.is_file():
-            logging.info("Found file: " + str(entry.path))
-
-            if str(entry.path).lower().endswith('.md'):  # chech for correct file extension
-
-                newFileContent = ""
-                filesToUpload = []
-                with open(entry.path, 'r', encoding="utf-8") as mdFile:
-                    for line in mdFile:
-
-                        # search for images in each line and ignore http/https image links
-                        # Pattern: \A!\[.*]\(.*\)\Z
-                        # example:  ![test](/data_images/test_image.jpg)
-
-                        result = re.findall("\A!\[.*]\((?!http)(.*)\)", line)
-
-                        if bool(result):   # line contains an image
-                            # extract filename from the full path
-                            # ['/data_images/test_image.jpg'] => /data_images/test_image.jpg
-                            result = str(result).split('\'')[1]
-                            # /data_images/test_image.jpg => test_image.jpg
-                            result = str(result).split('/')[-1]
-                            logging.debug(
-                                "Found file for attaching: " + result)
-                            filesToUpload.append(result)
-                            # replace line with conflunce storage format <ac:image> <ri:attachment ri:filename="test_image.jpg" /></ac:image>
-                            newFileContent += "<ac:image> <ri:attachment ri:filename=\"" + \
-                                result + "\" /></ac:image>"
-                        else:  # line without an image
-                            newFileContent += line
-
-                    # create new page
-                    pageIDforFileAttaching = create_page(title=str(entry.name),
-                                                         content=markdown.markdown(newFileContent, extensions=[
-                                                             'markdown.extensions.tables', 'fenced_code']),
-                                                         parentPageID=parentPageID,
-                                                         login=login,
-                                                         password=password)
-
-                    # if do exist files to Upload as attachments
-                    if bool(filesToUpload):
-                        for file in filesToUpload:
-                            # full path of uploaded image file
-                            imagePath = str(
-                                CONFIG["github_folder_with_image_files"]) + "/" + file
-                            if os.path.isfile(imagePath):  # check if the  file exist
-                                logging.info(
-                                    "Attaching file: " + imagePath + "  to the page: " + str(pageIDforFileAttaching))
-                                with open(imagePath, 'rb') as attachedFile:
-                                    attach_file(page_id=pageIDforFileAttaching,
-                                                attached_file=attachedFile,
-                                                login=login,
-                                                password=password)
-                            else:
-                                logging.error(
-                                    "File: " + str(imagePath) + "  not found. Nothing to attach")
-            else:
-                logging.info("File: " + str(entry.path) +
-                             "  is not a MD file. Publishing has rejected")
+            publish_file(entry, login, password, parent_page_id)
 
         elif entry.is_symlink():
-            logging.info("Found symlink: " + str(entry.path))
+            logging.info(f"Found symlink: {entry.path}")
 
         else:
-            logging.info(
-                "Found unknown type of entry (not file, not directory, not symlink) " + str(entry.path))
+            logging.info(f"Found unknown type of entry: {entry.path}")
+
+
+def publish_directory(entry, login, password, parent_page_id):
+    logging.info(f"Found directory: {entry.path}")
+    current_page_id = create_page(
+        title=entry.name,
+        content="<ac:structured-macro ac:name=\"children\" ac:schema-version=\"2\" "
+                "ac:macro-id=\"80b8c33e-cc87-4987-8f88-dd36ee991b15\"/>",
+        parent_page_id=parent_page_id,
+        login=login,
+        password=password
+    )
+    publish_folder(entry.path, login, password, current_page_id)
+
+
+def publish_file(entry, login, password, parent_page_id):
+    logging.info(f"Found file: {entry.path}")
+
+    if entry.name.lower().endswith('.md'):
+        process_markdown_file(entry, login, password, parent_page_id)
+    else:
+        logging.info(
+            f"File: {entry.path} is not a MD file. Publishing has been rejected.")
+
+
+def process_markdown_file(entry, login, password, parent_page_id):
+    new_file_content, files_to_upload = process_markdown_content(entry.path)
+
+    page_id_for_file_attaching = create_page(
+        title=entry.name,
+        content=markdown.markdown(new_file_content, extensions=[
+                                  'markdown.extensions.tables', 'fenced_code']),
+        parent_page_id=parent_page_id,
+        login=login,
+        password=password
+    )
+
+    upload_attachments(files_to_upload, login, password,
+                       page_id_for_file_attaching)
+
+
+def process_markdown_content(file_path):
+    new_file_content = ""
+    files_to_upload = []
+
+    with open(file_path, 'r', encoding="utf-8") as md_file:
+        for line in md_file:
+            result = re.findall(r"\A!\[.*]\((?!http)(.*)\)", line)
+            if result:
+                result = result[0].split('/')[-1]
+                logging.debug(f"Found file for attaching: {result}")
+                files_to_upload.append(result)
+                new_file_content += f"<ac:image> <ri:attachment ri:filename=\"{result}\" /></ac:image>"
+            else:
+                new_file_content += line
+
+    return new_file_content, files_to_upload
+
+
+def upload_attachments(files_to_upload, login, password, page_id_for_file_attaching):
+    if files_to_upload:
+        for file in files_to_upload:
+            image_path = os.path.join(
+                CONFIG["github_folder_with_image_files"], file)
+            if os.path.isfile(image_path):
+                logging.info(
+                    f"Attaching file: {image_path} to the page: {page_id_for_file_attaching}")
+                with open(image_path, 'rb') as attached_file:
+                    attach_file(
+                        page_id=page_id_for_file_attaching,
+                        attached_file=attached_file,
+                        login=login,
+                        password=password
+                    )
+            else:
+                logging.error(
+                    f"File: {image_path} not found. Nothing to attach")
+

@@ -16,7 +16,7 @@ requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 #
 
 
-def create_page(title, content, parentPageID, login, password):
+def create_page(title, content, parent_page_id, login, password):
 
     # descripe json query
     newPageJSONQueryString = """
@@ -47,12 +47,12 @@ def create_page(title, content, parentPageID, login, password):
     newPagejsonQuery['space']['key'] = CONFIG["confluence_space"]
 
     # check of input of the ParentPageID
-    if parentPageID is None:
+    if parent_page_id is None:
         # this is the root of out pages tree
         newPagejsonQuery['ancestors'][0]['id'] = CONFIG["counfluence_parent_page_id"]
     else:
         newPagejsonQuery['ancestors'][0]['id'] = str(
-            parentPageID)  # this is the branch of our tree
+            parent_page_id)  # this is the branch of our tree
 
     # add search pattern to the title for the ability to find and delete this page in the future
     newPagejsonQuery['title'] = title + "  " + \
