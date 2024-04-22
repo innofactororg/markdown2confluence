@@ -2,31 +2,31 @@ import logging
 import os
 import markdown
 import re
-from config.getconfig import getConfig
-from pagesController import createPage
-from pagesController import attachFile
+from config.get_config import get_config
+from pages_controller import create_page
+from pages_controller import attach_file
 
 
-CONFIG = getConfig()
+CONFIG = get_config()
 
 
 # parentPageID has the default input parameter "None" (it means ROOT)
-def publishFolder(folder, login, password, parentPageID=None):
+def publish_folder(folder, login, password, parentPageID=None):
     logging.info("Publishing folder: " + folder)
     for entry in os.scandir(folder):
         if entry.is_dir():
             # create page with the DISPLAY CHILDREN macro for the directories in the folder with MD files
             logging.info("Found directory: " + str(entry.path))
-            currentPageID = createPage(title=str(entry.name),
-                                       # name of the DISPLAY CHILDREN macro
-                                       content="<ac:structured-macro ac:name=\"children\" ac:schema-version=\"2\" ac:macro-id=\"80b8c33e-cc87-4987-8f88-dd36ee991b15\"/>",
-                                       parentPageID=parentPageID,
-                                       login=login,
-                                       password=password)
+            currentPageID = create_page(title=str(entry.name),
+                                        # name of the DISPLAY CHILDREN macro
+                                        content="<ac:structured-macro ac:name=\"children\" ac:schema-version=\"2\" ac:macro-id=\"80b8c33e-cc87-4987-8f88-dd36ee991b15\"/>",
+                                        parentPageID=parentPageID,
+                                        login=login,
+                                        password=password)
 
             # publish files in the current folder
-            publishFolder(folder=entry.path, login=login,
-                          password=password, parentPageID=currentPageID)
+            publish_folder(folder=entry.path, login=login,
+                           password=password, parentPageID=currentPageID)
 
         elif entry.is_file():
             logging.info("Found file: " + str(entry.path))
@@ -60,12 +60,12 @@ def publishFolder(folder, login, password, parentPageID=None):
                             newFileContent += line
 
                     # create new page
-                    pageIDforFileAttaching = createPage(title=str(entry.name),
-                                                        content=markdown.markdown(newFileContent, extensions=[
-                                                                                  'markdown.extensions.tables', 'fenced_code']),
-                                                        parentPageID=parentPageID,
-                                                        login=login,
-                                                        password=password)
+                    pageIDforFileAttaching = create_page(title=str(entry.name),
+                                                         content=markdown.markdown(newFileContent, extensions=[
+                                                             'markdown.extensions.tables', 'fenced_code']),
+                                                         parentPageID=parentPageID,
+                                                         login=login,
+                                                         password=password)
 
                     # if do exist files to Upload as attachments
                     if bool(filesToUpload):
@@ -77,10 +77,10 @@ def publishFolder(folder, login, password, parentPageID=None):
                                 logging.info(
                                     "Attaching file: " + imagePath + "  to the page: " + str(pageIDforFileAttaching))
                                 with open(imagePath, 'rb') as attachedFile:
-                                    attachFile(pageIdForFileAttaching=pageIDforFileAttaching,
-                                               attachedFile=attachedFile,
-                                               login=login,
-                                               password=password)
+                                    attach_file(page_id=pageIDforFileAttaching,
+                                                attached_file=attachedFile,
+                                                login=login,
+                                                password=password)
                             else:
                                 logging.error(
                                     "File: " + str(imagePath) + "  not found. Nothing to attach")
