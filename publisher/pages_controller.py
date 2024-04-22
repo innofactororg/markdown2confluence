@@ -3,9 +3,9 @@ import logging
 import requests
 from urllib3.exceptions import InsecureRequestWarning
 from requests.auth import HTTPBasicAuth
-from config.getconfig import getConfig
+from config.get_config import get_config
 
-CONFIG = getConfig()
+CONFIG = get_config()
 
 
 # Suppress only the single warning from urllib3 needed.
@@ -16,7 +16,7 @@ requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 #
 
 
-def createPage(title, content, parentPageID, login, password):
+def create_page(title, content, parentPageID, login, password):
 
     # descripe json query
     newPageJSONQueryString = """
@@ -91,7 +91,7 @@ def createPage(title, content, parentPageID, login, password):
 #
 # Function for searching pages with SEARCH TEST in the title
 #
-def searchPages(login, password):
+def search_pages(login, password):
     # make call using Confluence query language
     # GET /rest/api/search?cql=text~%7B%22SEARCH%20PATTERN%22%7D+and+type=page+and+space=%2212345%22&limit=1000 HTTP/1.1" 200
     # "cqlQuery": "parent=301176119 and text~{\"SEARCH PATTERN\"} and type=page and space=\"12345\""
@@ -133,11 +133,11 @@ def searchPages(login, password):
 #
 # Function for deleting pages
 #
-def deletePages(pagesIDList, login, password):
+def delete_pages(pages_id_list, login, password):
 
     deletedPages = []
 
-    for page in pagesIDList:
+    for page in pages_id_list:
         logging.info("Delete page: " + str(page))
         logging.debug("Calling URL: " +
                       str(CONFIG["confluence_url"]) + "content/" + str(page))
@@ -156,35 +156,73 @@ def deletePages(pagesIDList, login, password):
 #
 
 
-def attachFile(pageIdForFileAttaching, attachedFile, login, password):
+def attach_file(page_id, attached_file, login, password):
+    """
+    Attach a file to a Confluence page.
 
-    # make call to attache fale to a page
-    logging.debug("Calling URL: " + str(CONFIG["confluence_url"]) + "content/" + str(
-        pageIdForFileAttaching) + "/child/attachment")
+    Args:
+        page_id (str): ID of the Confluence page to attach the file to.
+        attached_file (file): The file to be attached.
+        login (str): The login username for authentication.
+        password (str): The login password for authentication.
 
-    attachedFileStructure = {'file': attachedFile}
-    attachedValues = {'comment': 'file was attached by the script'}
-    attachedHeader = {"Accept": "application/json",
-                      "X-Atlassian-Token": "nocheck"}  # disable token check. Otherwise it will be 443 status code
+    Returns:
+        str: The ID of the attached file or None if the attachment failed.
+    """
 
+    # Construct the API endpoint URL
+    api_url = f"{CONFIG['confluence_url']}content/{page_id}/child/attachment"
+
+    # Log the API call
+    logging.debug(f"Calling URL: {api_url}")
+
+    # Set up file and comment data, headers, and disable SSL verification
+    attached_file_structure = {'file': attached_file}
+    attached_values = {'comment': 'File was attached by the script'}
+    attached_header = {
+        "Accept": "application/json",
+        "X-Atlassian-Token": "nocheck"  # Disable token check to avoid 403 status code
+    }
+
+    # Make the POST request to attach the file
     response = requests.post(
-        url=CONFIG["confluence_url"] + "content/" +
-        str(pageIdForFileAttaching) + "/child/attachment",
-        files=attachedFileStructure,
-        data=attachedValues,
+        url=api_url,
+        files=attached_file_structure,
+        data=attached_values,
         auth=HTTPBasicAuth(login, password),
-        headers=attachedHeader,
-        verify=False)
+        headers=attached_header,
+        verify=False  # Not recommended in production
+    )
 
+    # Log the response status code
     logging.debug(response.status_code)
-    if response.status_code == 200:
-        logging.info("File was attached successfully")
-        logging.debug(json.dumps(json.loads(
-            response.text), indent=4, sort_keys=True))
 
-        # return id of the attached file
-        logging.debug("Returning attached file id: " +
-                      json.loads(response.text)['results'][0]['id'])
-        return json.loads(response.text)['results'][0]['id']
+    if response.status_code == 200:
+        # Log success and parse JSON response
+        logging.info("File was attached successfully")
+        response_data = json.loads(response.text)
+        logging.debug(json.dumps(response_data, indent=4, sort_keys=True))
+
+        # Extract and return the ID of the attached file
+        attached_file_id = response_data['results'][0]['id']
+        logging.debug(f"Returning attached file id: {attached_file_id}")
+        return attached_file_id
     else:
-        logging.error("File has not attached")
+        # Log failure and return None
+        logging.error("File has not been attached")
+        return None
+
+    if response.status_code == 200:
+        # Log success and parse JSON response
+        logging.info("File was attached successfully")
+        response_data = json.loads(response.text)
+        logging.debug(json.dumps(response_data, indent=4, sort_keys=True))
+
+        # Extract and return the ID of the attached file
+        attached_file_id = response_data['results'][0]['id']
+        logging.debug(f"Returning attached file id: {attached_file_id}")
+        return attached_file_id
+    else:
+        # Log failure and return None
+        logging.error("File has not been attached")
+        return None
