@@ -6,7 +6,7 @@ from pages_controller import delete_pages, search_pages
 from pages_publisher import publish_folder
 
 config = get_config()
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
 
     # Publish the markdown files from the specified folder
     publish_folder(
-        folder=config["github_folder_with_md_files"], login=login, password=password
+        folder=config["markdown_folder"], login=login, password=password
     )
 
 

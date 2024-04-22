@@ -9,20 +9,29 @@ from pages_controller import create_page, attach_file
 CONFIG = get_config()
 
 
+def folderContainsMarkdown(folder_path):
+    for entry in os.scandir(folder_path):
+        if entry.is_dir() and folderContainsMarkdown(entry.path):
+            return True
+        elif entry.is_file() and entry.name.endswith('.md'):
+            return True
+    return False
+
+
 def publish_folder(folder, login, password, parent_page_id=None):
     logging.info(f"Publishing folder: {folder}")
     for entry in os.scandir(folder):
         if entry.is_dir():
-            publish_directory(entry, login, password, parent_page_id)
+            # Recursively publish directories that contain markdown files
+            if folderContainsMarkdown(entry.path):
+                publish_directory(entry, login, password, parent_page_id)
 
-        elif entry.is_file():
+        elif entry.is_file() and entry.name.endswith('.md'):
+            # Publish only markdown files
             publish_file(entry, login, password, parent_page_id)
 
         elif entry.is_symlink():
             logging.info(f"Found symlink: {entry.path}")
-
-        else:
-            logging.info(f"Found unknown type of entry: {entry.path}")
 
 
 def publish_directory(entry, login, password, parent_page_id):
@@ -72,10 +81,11 @@ def process_markdown_content(file_path):
         for line in md_file:
             result = re.findall(r"\A!\[.*]\((?!http)(.*)\)", line)
             if result:
-                result = result[0].split('/')[-1]
+                result = result[0]
                 logging.debug(f"Found file for attaching: {result}")
+                print(f"Found file for attaching: {result}")
                 files_to_upload.append(result)
-                new_file_content += f"<ac:image> <ri:attachment ri:filename=\"{result}\" /></ac:image>"
+                new_file_content += f"<ac:image> <ri:attachment ri:filename=\"{result.split('/')[-1]}\" /></ac:image>"
             else:
                 new_file_content += line
 
@@ -85,8 +95,14 @@ def process_markdown_content(file_path):
 def upload_attachments(files_to_upload, login, password, page_id_for_file_attaching):
     if files_to_upload:
         for file in files_to_upload:
+            print("file: ", file)
+
+            # NOTE: Find the problem that this solves and fix it in a better way
+            if file.startswith('/'):
+                file = '.' + file
+
             image_path = os.path.join(
-                CONFIG["github_folder_with_image_files"], file)
+                CONFIG["markdown_folder"], file)
             if os.path.isfile(image_path):
                 logging.info(
                     f"Attaching file: {image_path} to the page: {page_id_for_file_attaching}")
@@ -100,4 +116,3 @@ def upload_attachments(files_to_upload, login, password, page_id_for_file_attach
             else:
                 logging.error(
                     f"File: {image_path} not found. Nothing to attach")
-
