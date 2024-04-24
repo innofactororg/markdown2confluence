@@ -45,7 +45,7 @@ def create_page(title, content, parent_page_id, login, password):
     newPagejsonQuery = json.loads(newPageJSONQueryString)
 
     # the key of Confluence space for content publishing
-    newPagejsonQuery['space']['key'] = CONFIG["confluence_space"]
+    newPagejsonQuery['space']['key'] = CONFIG["confluence_space_id"]
 
     # check of input of the ParentPageID
     if parent_page_id is None:
@@ -102,13 +102,13 @@ def search_pages(login, password):
     logging.debug("Calling URL: " + str(CONFIG["confluence_url"]) + "search?cql=parent=" + str(CONFIG["confluence_parent_page_id"]) +
                   "+and+text~{\"" + str(CONFIG["confluence_search_pattern"]) +
                   "\"}+and+type=page+and+space=\"" +
-                  str(CONFIG["confluence_space"]) +
+                  str(CONFIG["confluence_space_id"]) +
                   "\"&limit=1000")
 
     response = requests.get(
         url=str(CONFIG["confluence_url"]) + "search?cql=text~{\"" + str(CONFIG["confluence_search_pattern"]) +
         "\"}+and+type=page+and+space=\"" +
-        str(CONFIG["confluence_space"]) +
+        str(CONFIG["confluence_space_id"]) +
         "\"&limit=1000",
         auth=HTTPBasicAuth(login, password),
         verify=True)
@@ -126,7 +126,7 @@ def search_pages(login, password):
         logging.info("Found page: " + result['content']['id'] +
                      " with title: " + result['content']['title'])
 
-    logging.debug("Found pages in space " + str(CONFIG["confluence_space"]) + " and parent page: " +
+    logging.debug("Found pages in space " + str(CONFIG["confluence_space_id"]) + " and parent page: " +
                   str(CONFIG["confluence_parent_page_id"]) + " and search text: " +
                   str(CONFIG["confluence_search_pattern"]) + ": " + str(foundPages))
 

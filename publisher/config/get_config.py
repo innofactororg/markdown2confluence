@@ -15,9 +15,9 @@ def get_config():
     parser.add_argument('--url', required=False,
                         help='Confluence URL',
                         default=os.environ.get('CONFLUENCE_URL', "https://yourdomain.atlassian.net/wiki/rest/api/"))
-    parser.add_argument('--space', required=False,
+    parser.add_argument('--space-id', required=False,
                         help='Confluence space key',
-                        default=os.environ.get('CONFLUENCE_SPACE', "yourspace"))
+                        default=os.environ.get('CONFLUENCE_SPACE_ID', "yourspace"))
     parser.add_argument('--parent_page_id', required=False,
                         help='Confluence parent page ID',
                         default=os.environ.get('CONFLUENCE_PARENT_PAGE_ID', "65777"))
@@ -32,7 +32,7 @@ def get_config():
 
     return {
         'confluence_url': args.url,
-        'confluence_space': args.space,
+        'confluence_space_id': args.space_id,
         'confluence_parent_page_id': args.parent_page_id,
         'confluence_search_pattern': args.search_pattern,
         'markdown_folder': args.markdown_folder,
