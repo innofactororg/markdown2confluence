@@ -1,3 +1,4 @@
+import fnmatch
 import logging
 import os
 import markdown
@@ -7,6 +8,29 @@ from pages_controller import create_page, attach_file
 
 
 CONFIG = get_config()
+
+
+def load_ignore_patterns(path=CONFIG["confluence_ignorefile"]):
+    patterns = []
+    try:
+        with open(path, 'r') as file:
+            patterns = [line.strip() for line in file if line.strip()
+                        and not line.startswith('#')]
+    except FileNotFoundError:
+        print(f"No {path} file found, no patterns to ignore.")
+    return patterns
+
+
+# NOTE: Move this to __init__ when refactoring to Publisher class
+ignore_patterns = load_ignore_patterns()
+
+
+# Function to check if a file matches any of the ignore patterns
+def is_ignored(file):
+    for pattern in ignore_patterns:
+        if fnmatch.fnmatch(file, pattern):
+            return True
+    return False
 
 
 def folderContainsMarkdown(folder_path):
@@ -21,6 +45,8 @@ def folderContainsMarkdown(folder_path):
 def publish_folder(folder, login, password, parent_page_id=None):
     logging.info(f"Publishing folder: {folder}")
     for entry in os.scandir(folder):
+        if is_ignored(entry.path):
+            return
         if entry.is_dir():
             # Recursively publish directories that contain markdown files
             if folderContainsMarkdown(entry.path):
