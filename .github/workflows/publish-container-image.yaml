@@ -69,10 +69,6 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
 
-      - name: downcase REPO
-        run: |
-          echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
-
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -82,5 +78,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           file: ./publisher/Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.git_version }}
           platforms: linux/amd64,linux/arm/v7,linux/arm64
