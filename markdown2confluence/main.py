@@ -8,9 +8,13 @@ def main():
 
     converter = Converter()
     publisher = Publisher(
-        config.confluence_username, config.confluence_password,
-        config.confluence_url, config.confluence_space_id,
-        config.confluence_parent_page_id)
+        url=config.confluence_url,
+        username=config.confluence_username,
+        password=config.confluence_password,
+        space_id=config.confluence_space_id,
+        parent_page_id=config.confluence_parent_page_id,
+        page_title_suffix=config.confluence_page_title_suffix,
+        page_label=config.confluence_page_label)
 
     # Implement logic to walk through the markdown-folder and convert/publish files
     # based on the specified confluence-search-pattern and ignore patterns from
