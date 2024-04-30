@@ -9,8 +9,8 @@ class Config:
 
         self.confluence_url = (
             args.confluence_url or
-            os.environ.get('CONFLUENCE_URL')
-        )
+            os.environ.get('CONFLUENCE_URL', '')
+        ).rstrip('/')
         self.confluence_username = (
             args.confluence_username or
             os.environ.get('CONFLUENCE_USERNAME')
@@ -109,4 +109,3 @@ def parse_args():
               "markdown2confluence"))
 
     return parser.parse_args()
-
