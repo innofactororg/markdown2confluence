@@ -1,3 +1,4 @@
+import backoff
 import fnmatch
 import json
 import logging
@@ -9,6 +10,10 @@ import string
 from atlassian import Confluence
 from markdown import markdown
 from requests.auth import HTTPBasicAuth
+
+# Set up basic configuration for logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class Publisher:
@@ -151,21 +156,58 @@ class Publisher:
         # GET /rest/api/search?cql=text~%7B%22SEARCH%20PATTERN%22%7D+and+type=page+and+space=%2212345%22&limit=1000 HTTP/1.1" 200
         # "cqlQuery": "parent=301176119 and text~{\"SEARCH PATTERN\"} and type=page and space=\"12345\""
 
-        logging.debug("Calling URL: " + self.url + "search?cql=parent=" + self.parent_page_id +
+        logging.debug("Calling URL: " + self.url + "/search?cql=parent=" + self.parent_page_id +
                       "+and+text~{\"" + self.page_title_suffix +
                       "\"}+and+type=page+and+space=\"" +
                       self.space_id +
                       "\"&limit=1000")
 
-        response = requests.get(
-            url=self.url + "search?cql=text~{\"" + self.page_title_suffix +
-            "\"}+and+type=page+and+space=\"" +
-            self.space_id +
-            "\"&limit=1000",
-            auth=HTTPBasicAuth(self.username, self.password),
-            verify=True)
+        def fatal_code(e):
+            return not 500 <= e.response.status_code < 600
+
+        # Exponential backoff for timeouts and server errors (500-599), fail on fatal errors
+
+        @backoff.on_exception(backoff.expo, requests.exceptions.Timeout, max_tries=8)
+        @backoff.on_exception(backoff.expo,
+                              requests.exceptions.RequestException,
+                              giveup=fatal_code,
+                              max_tries=4)
+        def get_request(url, auth):
+            response = requests.get(
+                url=url,
+                auth=auth,
+                verify=True
+            )
+            # Raise an HTTPError for bad responses so it can be caught by backoff or fail the script
+            response.raise_for_status()
+            return response
+
+        # Modify your existing code structure to use the get_request function
+        try:
+            response = get_request(
+                url=self.url + "/search?cql=text~{\"" + self.page_title_suffix +
+                "\"}+and+type=page+and+space=\"" +
+                self.space_id +
+                "\"&limit=1000",
+                auth=HTTPBasicAuth(self.username, self.password)
+            )
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"HTTP error occurred: {http_err}")
+            raise SystemExit(http_err)
+        except requests.exceptions.ConnectionError as conn_err:
+            logger.error(f"Connection error occurred: {conn_err}")
+            raise SystemExit(conn_err)
+        except requests.exceptions.Timeout as timeout_err:
+            # Should not reach here if `max_tries` has not been exceeded
+            logger.error(
+                f"Timeout error occurred after retries: {timeout_err}")
+            raise SystemExit(timeout_err)
+        except requests.exceptions.RequestException as req_err:
+            logger.error(f"Error making request: {req_err}")
+            raise SystemExit(req_err)
 
         logging.debug(response.status_code)
+        logging.debug(response.text)
         logging.debug(json.dumps(json.loads(
             response.text), indent=4, sort_keys=True))
 
@@ -191,9 +233,9 @@ class Publisher:
         for page in pages_id_list:
             logging.info("Delete page: " + str(page))
             logging.debug("Calling URL: " +
-                          self.url + "content/" + str(page))
+                          self.url + "/content/" + str(page))
             response = requests.delete(
-                url=self.url + "content/" + str(page),
+                url=self.url + "/content/" + str(page),
                 auth=HTTPBasicAuth(self.username, self.password),
                 verify=True)
             logging.debug("Delete status code: " + str(response.status_code))
@@ -264,6 +306,9 @@ class Publisher:
         return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
     def load_ignore_patterns(self, path):
+        if not path:
+            return []
+
         patterns = []
         try:
             with open(path, 'r') as file:
