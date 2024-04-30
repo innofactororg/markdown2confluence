@@ -1,6 +1,9 @@
+import logging
+import time
+
+from config import Config
 from converter import Converter
 from publisher import Publisher
-from config import Config
 
 
 def main():
@@ -14,15 +17,20 @@ def main():
         space_id=config.confluence_space_id,
         parent_page_id=config.confluence_parent_page_id,
         page_title_suffix=config.confluence_page_title_suffix,
-        page_label=config.confluence_page_label)
+        page_label=config.confluence_page_label,
+        markdown_folder=config.markdown_folder,
+        confluence_ignorefile=config.confluence_ignorefile)
 
-    # Implement logic to walk through the markdown-folder and convert/publish files
-    # based on the specified confluence-search-pattern and ignore patterns from
-    # confluence-ignorefile
-    # ...
-    # Example usage:
-    # confluence_content = converter.convert(markdown_content)
-    # publisher.publish(confluence_content, page_title)
+    logging.basicConfig(level=logging.INFO)
+    logging.debug(config)
+
+    pages = publisher.search_pages()
+    publisher.delete_pages(pages_id_list=pages)
+
+    time.sleep(5)  # Sleep for 5 seconds to allow the delete to fully complete
+
+    # Publish the markdown files from the specified folder
+    publisher.publish_folder(folder=config.markdown_folder)
 
 
 if __name__ == "__main__":
