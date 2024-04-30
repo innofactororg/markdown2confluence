@@ -15,7 +15,7 @@ class Publisher:
         self.page_label = page_label
 
     def publish_page(self, title, content):
-        title_with_suffix = f"{title}{self.page_suffix}"
+        title_with_suffix = f"{title}{self.page_title_suffix}"
         existing_page = self.confluence.get_page_by_title(
             space=self.space_id,
             title=title_with_suffix,
