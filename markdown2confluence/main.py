@@ -30,7 +30,10 @@ def main():
     time.sleep(5)  # Sleep for 5 seconds to allow the delete to fully complete
 
     # Publish the markdown files from the specified folder
-    publisher.publish_folder(folder=config.markdown_folder)
+    publisher.publish_folder(
+        folder=config.markdown_folder,
+        parent_page_id=config.confluence_parent_page_id
+    )
 
 
 if __name__ == "__main__":
