@@ -1,5 +1,4 @@
 import backoff
-import fnmatch
 import json
 import logging
 import os
@@ -7,8 +6,11 @@ import random
 import re
 import requests
 import string
+
 from atlassian import Confluence
 from markdown import markdown
+from pathspec import PathSpec
+from pathspec.patterns import GitWildMatchPattern
 from requests.auth import HTTPBasicAuth
 
 # Set up basic configuration for logging
@@ -314,19 +316,18 @@ class Publisher:
             with open(path, 'r') as file:
                 patterns = [line.strip() for line in file if line.strip()
                             and not line.startswith('#')]
+                print("loaded ignorepatterns", patterns)
         except FileNotFoundError:
-            print(f"No {path} file found, no patterns to ignore.")
+            print(f"Unable to locate {path}, no patterns to ignore.")
         return patterns
 
     # NOTE: Move this to __init__ when refactoring to Publisher class
 
     # Function to check if a file matches any of the ignore patterns
 
-    def is_ignored(self, file):
-        for pattern in self.ignore_patterns:
-            if fnmatch.fnmatch(file, pattern):
-                return True
-        return False
+    def is_ignored(self, file_path):
+        spec = PathSpec.from_lines(GitWildMatchPattern, self.ignore_patterns)
+        return spec.match_file(file_path)
 
     def folderContainsMarkdown(self, folder_path):
         for entry in os.scandir(folder_path):
