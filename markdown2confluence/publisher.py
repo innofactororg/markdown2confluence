@@ -12,7 +12,7 @@ from markdown import markdown
 from requests.auth import HTTPBasicAuth
 
 # Set up basic configuration for logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
