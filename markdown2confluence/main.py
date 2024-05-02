@@ -19,6 +19,7 @@ def main():
         page_title_suffix=config.confluence_page_title_suffix,
         page_label=config.confluence_page_label,
         markdown_folder=config.markdown_folder,
+        markdown_source_ref=config.markdown_source_ref,
         confluence_ignorefile=config.confluence_ignorefile)
 
     logging.basicConfig(level=logging.INFO)

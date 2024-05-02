@@ -32,6 +32,10 @@ class Config:
             os.environ.get('MARKDOWN_FOLDER') or
             './'
         )
+        self.markdown_source_ref = (
+            args.markdown_source_ref or
+            os.environ.get('MARKDOWN_SOURCE_REF')
+        )
         self.confluence_ignorefile = (
             args.confluence_ignorefile or
             os.environ.get('CONFLUENCE_IGNOREFILE')
@@ -96,6 +100,9 @@ def parse_args():
     parser.add_argument(
         '--markdown-folder',
         help="File or folder containing Markdown files to publish")
+    parser.add_argument(
+        '--markdown-source-ref',
+        help="Source reference of the Markdown, e.g. github.com/org/repo")
     parser.add_argument(
         '--confluence-ignorefile',
         help="Path to a file with patterns to ignore files or directories")
