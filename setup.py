@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='markdown2confluence',
-    version='0.1.0-alpha',
+    version='0.3.0-alpha',
     packages=find_packages(),
     install_requires=[
         # dependencies

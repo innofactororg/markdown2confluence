@@ -1,18 +1,22 @@
+from markdown2confluence.util import Logger
+
+logger = Logger(__name__).get_logger()
+
 
 class ConfluenceClient:
     def __init__(self, confluence_config: dict):
-        """Initialize with API configuration."""
-        self.api_endpoint = confluence_config["api_endpoint"]
+        self.api_endpoint = confluence_config["url"]
         self.auth = (confluence_config["username"],
                      confluence_config["password"])
 
-    def create_or_update_page(self, title: str, html: str, parent_id=None,
-                              space_key: str, labels=None) -> dict:
-        """Create or update a Confluence page, applying labels."""
-        # Implementation for creating or updating a Confluence page
+    def create_or_update_page(self, title: str, content: str, parent_id=None):
         pass
 
-    def delete_page(self, page_id: str) -> dict:
-        """Delete a Confluence page by ID."""
-        # Implementation for deleting a Confluence page
+    def delete_page(self, page_id: str):
+        pass
+
+    def publish_page(self, title: str, content: str, attachments: list[str]):
+        pass
+
+    def attach_file(self, page_id: int, attached_file: str):
         pass

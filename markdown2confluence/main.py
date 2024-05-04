@@ -1,26 +1,24 @@
-import logging
-import time
-
-from config import Config
-from converter import Converter
 from publisher import Publisher
+from config import Config
+from util import Logger
+from logo import LOGO_TEXT
+import pkg_resources
+
+config = Config()
+logger = Logger(__name__).get_logger()
+
+
+def logo_and_version():
+    print(LOGO_TEXT)
+    version = pkg_resources.get_distribution("markdown2confluence").version
+    print(f"Version: {version}\n")
 
 
 def main():
-    config = Config()
+    logo_and_version()
+    logger.info("Started markdown2confluence")
 
-    converter = Converter()
-    publisher = Publisher(
-        url=config.confluence_url,
-        username=config.confluence_username,
-        password=config.confluence_password,
-        space_id=config.confluence_space_id,
-        parent_page_id=config.confluence_parent_page_id,
-        page_title_suffix=config.confluence_page_title_suffix,
-        page_label=config.confluence_page_label,
-        markdown_folder=config.markdown_folder,
-        markdown_source_ref=config.markdown_source_ref,
-        confluence_ignorefile=config.confluence_ignorefile)
+    Publisher().publish_folder(config.markdown_folder)
 
 
 if __name__ == "__main__":
