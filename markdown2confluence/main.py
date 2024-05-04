@@ -22,20 +22,6 @@ def main():
         markdown_source_ref=config.markdown_source_ref,
         confluence_ignorefile=config.confluence_ignorefile)
 
-    logging.basicConfig(level=logging.INFO)
-    logging.debug(config)
-
-    pages = publisher.search_pages()
-    publisher.delete_pages(pages_id_list=pages)
-
-    time.sleep(5)  # Sleep for 5 seconds to allow the delete to fully complete
-
-    # Publish the markdown files from the specified folder
-    publisher.publish_folder(
-        folder=config.markdown_folder,
-        parent_page_id=config.confluence_parent_page_id
-    )
-
 
 if __name__ == "__main__":
     main()
