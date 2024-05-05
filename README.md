@@ -4,7 +4,7 @@ Convert your Markdown files into Confluence pages with ease using the `markdown2
 
 ## Prerequisites
 
-Before you get started, ensure that you have Python version 3.9 or higher installed on your system. You will also need the space ID of your Confluence space and the ID of the parent page where you want to create new pages.
+Before you get started, ensure that you have Python version 3.11 or higher installed on your system. You will also need the space ID of your Confluence space and the ID of the parent page where you want to create new pages.
 
 ## Configuration
 
