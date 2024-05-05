@@ -5,7 +5,7 @@ from logo import LOGO_TEXT
 import pkg_resources
 
 config = Config()
-logger = Logger(__name__).get_logger()
+logger = Logger("main").get_logger()
 
 
 def logo_and_version():
@@ -17,8 +17,8 @@ def logo_and_version():
 def main():
     logo_and_version()
     logger.info("Started markdown2confluence")
-
-    Publisher().publish_folder(config.markdown_folder)
+    logger.info("Publishing folder %s", config.markdown_folder)
+    Publisher().publish_directory(config.markdown_folder)
 
 
 if __name__ == "__main__":

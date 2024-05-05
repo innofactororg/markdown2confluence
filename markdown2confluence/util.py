@@ -4,8 +4,12 @@ import logging
 
 
 class Logger:
-    def __init__(self, name: str, log_file: str = 'markdown2confluence.log',
-                 level: int = logging.INFO):
+    def __init__(
+        self,
+        name: str,
+        log_file: str = 'markdown2confluence.log',
+        level: int = logging.DEBUG if os.getenv("DEBUG") else logging.ERROR
+    ):
         """
         Initialize the Logger with a specified name and log file.
 
@@ -27,9 +31,10 @@ class Logger:
             log_file, maxBytes=1024*1024*5, backupCount=5)
         file_handler.setLevel(level)
 
-        # Create a console handler with a higher log level
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.ERROR)
+        console_handler.setLevel(level)
+
+        print(logging.getLevelName(console_handler.level))
 
         # Create formatter and add it to the handlers
         formatter = logging.Formatter(

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ea9c81aba14dc5b093345a799263a3d9ca947578f13f5108be8cc39e32d5dbea"
+            "sha256": "018c8b383747f100e61899863605378863f1c783d3e36b8ca54c279adcaa2de4"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -159,6 +159,10 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==1.0.1"
+        },
+        "markdown2confluence": {
+            "editable": true,
+            "file": "."
         },
         "oauthlib": {
             "hashes": [
@@ -330,6 +334,7 @@
                 "sha256:d507d4482197eac0ba2bae2e9babf0672eb333017bcedaa5fb1a3d42c1174b3f"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.8'",
             "version": "==8.2.0"
         },
         "pytest-watch": {
@@ -345,6 +350,7 @@
                 "sha256:c636ac361bc47580504644275c9ad802c50415c7522212252c033bd15f301f32"
             ],
             "index": "pypi",
+            "markers": "python_version >= '3.8'",
             "version": "==69.5.1"
         },
         "watchdog": {

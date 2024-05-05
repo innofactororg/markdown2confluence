@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 atlassian-python-api = "*"
+markdown2confluence = {file = ".", editable = true}
 
 [dev-packages]
 setuptools = "*"
