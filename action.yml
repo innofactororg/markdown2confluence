@@ -24,9 +24,9 @@ runs:
   using: 'docker'
   image: 'ghcr.io/innofactororg/markdown2confluence:0.1.0'
   args:
-    - CONFLUENCE_USERNAME: ${{ inputs.CONFLUENCE_USERNAME }}
-    - CONFLUENCE_PASSWORD: ${{ inputs.CONFLUENCE_PASSWORD }}
-    - CONFLUENCE_URL: ${{ inputs.CONFLUENCE_URL }}
-    - CONFLUENCE_SPACE_ID: ${{ inputs.CONFLUENCE_SPACE_ID }}
-    - CONFLUENCE_PARENT_PAGE_ID: ${{ inputs.CONFLUENCE_PARENT_PAGE_ID }}
-    - MARKDOWN_FOLDER: ${{ inputs.MARKDOWN_FOLDER }}
+    - 'CONFLUENCE_USERNAME: ${{ inputs.CONFLUENCE_USERNAME }}'
+    - 'CONFLUENCE_PASSWORD: ${{ inputs.CONFLUENCE_PASSWORD }}'
+    - 'CONFLUENCE_URL: ${{ inputs.CONFLUENCE_URL }}'
+    - 'CONFLUENCE_SPACE_ID: ${{ inputs.CONFLUENCE_SPACE_ID }}'
+    - 'CONFLUENCE_PARENT_PAGE_ID: ${{ inputs.CONFLUENCE_PARENT_PAGE_ID }}'
+    - 'MARKDOWN_FOLDER: ${{ inputs.MARKDOWN_FOLDER }}'
