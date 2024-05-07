@@ -24,7 +24,7 @@ runs:
   using: 'docker'
   image: 'docker://ghcr.io/innofactororg/markdown2confluence:0.1.0'
   entrypoint: python /app/main.py
-  env:
+  args:
     - 'CONFLUENCE_USERNAME: ${{ inputs.CONFLUENCE_USERNAME }}'
     - 'CONFLUENCE_PASSWORD: ${{ inputs.CONFLUENCE_PASSWORD }}'
     - 'CONFLUENCE_URL: ${{ inputs.CONFLUENCE_URL }}'
