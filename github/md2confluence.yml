@@ -2,10 +2,7 @@ name: markdown2Confluence
 # on:
 #   push:
 #     branches:
-#       - 'sh/action.yml'
 #     paths:
-#       - 'markdown2confluence/**'
-#       - '.github/workflows/md2confluence.yml'
 jobs:
   markdown2Confluence:
     name: markdown2Confluence-${{ github.event.repository.updated_at}}
