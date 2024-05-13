@@ -18,7 +18,7 @@ inputs:
     required: true
   MARKDOWN_FOLDER:
     description: 'Path to the folder containing the markdown files to be published. Set to root (./) if all markdown files in your repo should be published.'
-    required: true
+    required: false
  
 runs:
   using: 'docker'
