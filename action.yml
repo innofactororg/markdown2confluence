@@ -1,0 +1,35 @@
+name: 'markdown2confluence'
+description: 'Publish markdown files to Confluence'
+inputs:
+  CONFLUENCE_USERNAME:
+    description: 'Confluence username'
+    required: true
+  CONFLUENCE_PASSWORD:
+    description: 'Confluence password or API token'
+    required: true
+  CONFLUENCE_URL:
+    description: 'URL to your confluence instance, e.g https://{example}.atlassian.net/wiki'
+    required: true
+  CONFLUENCE_SPACE_ID:
+    description: 'Confluence space ID'
+    required: true
+  CONFLUENCE_PARENT_PAGE_ID:
+    description: 'ID of the confluence parent page where the markdown files will be published under'
+    required: true
+  MARKDOWN_FOLDER:
+    description: 'Path to the folder containing the markdown files to be published. Set to root (./) if all markdown files in your repo should be published.'
+    required: false
+ 
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/innofactororg/markdown2confluence:0.1.0'
+  env:
+    CONFLUENCE_USERNAME: ${{ inputs.CONFLUENCE_USERNAME }}
+    CONFLUENCE_PASSWORD: ${{ inputs.CONFLUENCE_PASSWORD }}
+    CONFLUENCE_URL: ${{ inputs.CONFLUENCE_URL }}
+    CONFLUENCE_SPACE_ID: ${{ inputs.CONFLUENCE_SPACE_ID }}
+    CONFLUENCE_PARENT_PAGE_ID: ${{ inputs.CONFLUENCE_PARENT_PAGE_ID }}
+    MARKDOWN_FOLDER: ${{ inputs.MARKDOWN_FOLDER }}
+  args:
+    - python
+    - /app/main.py
