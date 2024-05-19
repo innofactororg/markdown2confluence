@@ -1,22 +1,48 @@
-from markdown2confluence.config import Config
-from markdown2confluence.util import Logger
-from markdown2confluence.confluence import ConfluenceClient
-from markdown2confluence.parser import MarkdownParser as Parser
+from abc import ABC, abstractmethod
 
-config = Config()
+from markdown2confluence.util import Logger
+from markdown2confluence.content_tree import ContentTree, ContentNode
+
 logger = Logger(__name__).get_logger()
 
 
-class Publisher:
-    def __init__(self, confluence: ConfluenceClient | None = None):
-        self.confluence = confluence or ConfluenceClient(
-            confluence_config=config.confluence
-        )
-        logger.info("Initialized Publisher")
+class Publisher(ABC):
+    @abstractmethod
+    def publish_node(self, node: ContentNode, parent_id: str | None) -> str:
+        pass
 
-    def publish_directory(self, directory: str):
-        parser = Parser()
-        content_tree = parser.parse_directory(directory)
+    def pre_publish_hook(self):
+        """
+        Optional step for actions to perform before publishing, such as
+        fetching/deleting previously published resources.
+        Can be overridden by subclasses.
+        """
+        pass
+
+    def post_publish_hook(self):
+        """
+        Optional step for actions to perform after publishing, such as
+        cleaning up resources or performing additional logging.
+        Can be overridden by subclasses.
+        """
+        pass
+
+    def publish_content(self, content_tree: ContentTree):
         logger.debug("ContentTree:\n%s", content_tree)
 
-        # TODO: traverse tree and publish with ConfluenceClient.publish_page
+        self.pre_publish_hook()
+
+        def traverse_and_publish(
+                node: ContentNode,
+                parent_id: str | None = None):
+            logger.debug("Processing node: %s", node.name)
+
+            parent_id = self.publish_node(node, parent_id)
+
+            for child in node.children.values():
+                traverse_and_publish(child, parent_id)
+
+        traverse_and_publish(content_tree.root)
+
+        self.post_publish_hook()
+

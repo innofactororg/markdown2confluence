@@ -34,8 +34,6 @@ class Logger:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(level)
 
-        print(logging.getLevelName(console_handler.level))
-
         # Create formatter and add it to the handlers
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s')

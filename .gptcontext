@@ -24,8 +24,10 @@ markdown2confluence/
 │   ├── main.py
 │   ├── confluence.py
 │   ├── config.py
+│   ├── content_tree.py
 │   ├── parser.py
 │   ├── util.py
+│   ├── version.py
 │   └── publisher.py
 ├── README.md
 ├── requirements.txt
@@ -80,6 +82,22 @@ class Publisher:
     def publish_node(self, node: ContentNode, parent_id: str | None) -> str:
         pass
 
+    def pre_publish_hook(self):
+        """
+        Optional step for actions to perform before publishing, such as
+        fetching/deleting previously published resources.
+        Can be overridden by subclasses.
+        """
+        pass
+
+    def post_publish_hook(self):
+        """
+        Optional step for actions to perform after publishing, such as
+        cleaning up resources or performing additional logging.
+        Can be overridden by subclasses.
+        """
+        pass
+
     def publish_content(self, content_tree: ContentTree):
         """
         Traverse a content tree and call publish_node on each element.
@@ -89,20 +107,51 @@ class Publisher:
 
 2. **ConfluencePublisher**
 
-Specialized publisher for confluence, implements the publish_node function responsible for creating pages with labels etc in confluence
+Specialized publisher for confluence, implements the publish_node function responsible for creating/updating pages with labels etc in confluence
 
 ```python
 class ConfluencePublisher(Publisher):
     def __init__(self, confluence: Confluence = None):
         pass
 
+    def pre_publish_hook(self):
+        """
+        Specialized for this subclass.
+        Fetch all pages matching space, label and suffix
+        """
+
+    def post_publish_hook(self):
+        """
+        Specialized for this subclass.
+        Delete pages not in the ContentTree
+        """
+
     def publish_node(self, node: ContentNode, parent_id: str | None) -> str:
+        """
+        Create or update pages, including attachments, ensuring labels on newly created pages.
+        """
         pass
 ```
 
 3. **Parser**
 
 Responsible for parsing the source files from e.g. the file system.
+
+```python
+class Parser(ABC):
+    @abstractmethod
+    def parse_directory(self, directory: str) -> ContentTree:
+        pass
+
+
+class MarkdownParser(Parser):
+    def parse_directory(self, directory: str) -> ContentTree:
+        pass
+```
+
+4. **ContentTree**
+
+Defines the shared data structure for content between Parser and Publisher
 
 ```python
 @dataclass
@@ -116,14 +165,4 @@ class ContentNode:
 @dataclass
 class ContentTree:
     root: ContentNode = field(default_factory=lambda: ContentNode('root'))
-
-class Parser(ABC):
-    @abstractmethod
-    def parse_directory(self, directory: str) -> ContentTree:
-        pass
-
-
-class MarkdownParser(Parser):
-    def parse_directory(self, directory: str) -> ContentTree:
-        pass
-```
+``

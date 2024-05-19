@@ -1,8 +1,10 @@
-from publisher import Publisher
-from config import Config
-from util import Logger
-from logo import LOGO_TEXT
-import pkg_resources
+from markdown2confluence.publisher import ConfluencePublisher as Publisher
+from markdown2confluence.parser import MarkdownParser as Parser
+from markdown2confluence.logo import LOGO_TEXT
+from markdown2confluence.util import Logger
+from markdown2confluence.config import Config
+
+import importlib.metadata
 
 config = Config()
 logger = Logger("main").get_logger()
@@ -10,15 +12,21 @@ logger = Logger("main").get_logger()
 
 def logo_and_version():
     print(LOGO_TEXT)
-    version = pkg_resources.get_distribution("markdown2confluence").version
+    version = importlib.metadata.version("markdown2confluence")
     print(f"Version: {version}\n")
 
 
 def main():
     logo_and_version()
     logger.info("Started markdown2confluence")
-    logger.info("Publishing folder %s", config.markdown_folder)
-    Publisher().publish_directory(config.markdown_folder)
+
+    directory = config.markdown_folder
+
+    logger.info("Parsing folder %s", directory)
+    content = Parser().parse_directory(directory)
+
+    logger.info("Publishing content from directory %s", directory)
+    Publisher().publish_content(content)
 
 
 if __name__ == "__main__":
