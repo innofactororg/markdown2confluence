@@ -1,4 +1,8 @@
 import markdown
+from markdown.extensions.codehilite import CodeHiliteExtension
+from markdown.extensions.extra import ExtraExtension
+from markdown.extensions.meta import MetaExtension
+from markdown.extensions.toc import TocExtension
 
 
 class Converter:
@@ -8,7 +12,8 @@ class Converter:
         """Initialize the converter."""
         pass
 
-    def convert_markdown_to_html(self, markdown_content):
+    @staticmethod
+    def convert_markdown_to_html(markdown_content):
         """Convert Markdown content to HTML.
 
         Args:
@@ -17,5 +22,13 @@ class Converter:
         Returns:
             str: HTML content generated from the Markdown.
         """
-        html_content = markdown.markdown(markdown_content)
+        extensions = [
+            CodeHiliteExtension(linenums=False, guess_lang=False),
+            ExtraExtension(),
+            MetaExtension(),
+            TocExtension(permalink=True)
+        ]
+        html_content = markdown.markdown(
+            markdown_content, extensions=extensions)
         return html_content
+

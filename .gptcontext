@@ -19,9 +19,9 @@ markdown2confluence/
 │   └── usage.md
 ├── LICENCE
 ├── markdown2confluence
-│   ├── converter.py
 │   ├── __init_.py
 │   ├── main.py
+│   ├── converter.py
 │   ├── confluence.py
 │   ├── config.py
 │   ├── content_tree.py
@@ -157,12 +157,38 @@ Defines the shared data structure for content between Parser and Publisher
 @dataclass
 class ContentNode:
     name: str
-    content: [str] | None = None
-    metadata: [dict] | None = None
-    parent: ['ContentNode'] | None = None
+    content: str | None = None
+    metadata: dict | None = None
+    parent: 'ContentNode | None' = None
     children: dict[str, 'ContentNode'] = field(default_factory=dict)
+
+    def add_child(self, node: 'ContentNode'):
+        pass
+
+    def get_child(self, name: str) -> 'ContentNode | None':
+        pass
+
+    def is_leaf(self) -> bool:
+        pass
+
+    def is_root(self) -> bool:
+        pass
+
+    def __str__(self, level: int = 0) -> str:
+        pass
+
 
 @dataclass
 class ContentTree:
     root: ContentNode = field(default_factory=lambda: ContentNode('root'))
-``
+
+    def add_node(self, path_list: list, content: str | None = None,
+                 metadata: dict | None = None):
+        pass
+
+    def find_node(self, path_list: list) -> ContentNode | None:
+        pass
+
+    def __str__(self) -> str:
+        pass
+```

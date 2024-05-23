@@ -10,6 +10,7 @@ class ContentNode:
     children: dict[str, 'ContentNode'] = field(default_factory=dict)
 
     def add_child(self, node: 'ContentNode'):
+        node.parent = self
         self.children[node.name] = node
 
     def get_child(self, name: str) -> 'ContentNode | None':
@@ -17,6 +18,9 @@ class ContentNode:
 
     def is_leaf(self) -> bool:
         return not self.children
+
+    def is_root(self) -> bool:
+        return self.parent is None
 
     def __str__(self, level: int = 0) -> str:
         ret = "\t" * level + repr(self.name) + "\n"
@@ -29,27 +33,31 @@ class ContentNode:
 class ContentTree:
     root: ContentNode = field(default_factory=lambda: ContentNode('root'))
 
-    # Example usage:
-    # ContentTree().add_node(
-    #   path_list=['folder1', 'folder2', 'file.md'],
-    #   content='file content here',
-    #   metadata={'date': '2023-04-01'}
-    # )
     def add_node(self, path_list: list, content: str | None = None,
                  metadata: dict | None = None):
+        if not path_list:
+            raise ValueError("Path list cannot be empty.")
         current_node = self.root
         for part in path_list:
+            if not part:
+                raise ValueError("Path components must be non-empty strings.")
             next_node = current_node.get_child(part)
             if not next_node:
-                next_node = ContentNode(name=part, parent=current_node)
+                next_node = ContentNode(name=part)
                 current_node.add_child(next_node)
             current_node = next_node
+        if current_node is self.root:
+            raise ValueError("Cannot add content to the root node.")
         current_node.content = content
         current_node.metadata = metadata
 
     def find_node(self, path_list: list) -> ContentNode | None:
+        if not path_list:
+            raise ValueError("Path list cannot be empty.")
         current_node = self.root
         for part in path_list:
+            if not part:
+                raise ValueError("Path components must be non-empty strings.")
             current_node = current_node.get_child(part)
             if current_node is None:
                 return None
@@ -57,3 +65,4 @@ class ContentTree:
 
     def __str__(self) -> str:
         return str(self.root)
+

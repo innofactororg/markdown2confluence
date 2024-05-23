@@ -37,7 +37,8 @@ class Publisher(ABC):
                 parent_id: str | None = None):
             logger.debug("Processing node: %s", node.name)
 
-            parent_id = self.publish_node(node, parent_id)
+            if not node.is_root():
+                parent_id = self.publish_node(node, parent_id)
 
             for child in node.children.values():
                 traverse_and_publish(child, parent_id)
@@ -45,4 +46,3 @@ class Publisher(ABC):
         traverse_and_publish(content_tree.root)
 
         self.post_publish_hook()
-

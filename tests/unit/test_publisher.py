@@ -21,30 +21,37 @@ class TestPublisher(unittest.TestCase):
         )
         self.addCleanup(mock.patch.stopall)
 
-    def test_publish_content(self):
+    def test_publish_nested(self):
         # Create a simple content tree
+        root = ContentNode(name='root')
         child1 = ContentNode(name='child1')
         child2 = ContentNode(name='child2')
-        root = ContentNode(name='root', children={
-                           'child1': child1, 'child2': child2})
+        child3 = ContentNode(name='child3')
+        root.add_child(child1)
+        root.add_child(child2)
+        child2.add_child(child3)
         content_tree = ContentTree(root=root)
 
         # Call publish_content
         self.publisher.publish_content(content_tree)
 
         self.assertEqual(self.mock_publish_node.call_count, 3)
-        self.mock_publish_node.assert_any_call(self.publisher, root, None)
         self.mock_publish_node.assert_any_call(
-            self.publisher, child1, 'mock_id_for_root')
+            self.publisher, child1, None
+        )
         self.mock_publish_node.assert_any_call(
-            self.publisher, child2, 'mock_id_for_root')
+            self.publisher, child2, None
+        )
+        self.mock_publish_node.assert_any_call(
+            self.publisher, child3, 'mock_id_for_child2'
+        )
 
     def test_publish_with_circular_reference(self):
         # Create nodes with circular references
         node_a = ContentNode(name='A')
         node_b = ContentNode(name='B')
-        node_a.children['B'] = node_b
-        node_b.children['A'] = node_a
+        node_a.add_child(node_b)
+        node_b.add_child(node_a)
         content_tree = ContentTree(root=node_a)
 
         with self.assertRaises(RuntimeError):
@@ -59,8 +66,7 @@ class TestPublisher(unittest.TestCase):
 
     def test_publish_with_none_node(self):
         # Create a content tree with a None node
-        node = None
-        content_tree = ContentTree(root=node)
+        content_tree = ContentTree(root=None)
 
         with self.assertRaises(AttributeError):
             self.publisher.publish_content(content_tree)
@@ -82,4 +88,3 @@ class TestPublisher(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

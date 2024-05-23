@@ -62,12 +62,14 @@ class Config:
     def validate(self):
         missing_fields = []
 
-        required_fields = ['url', 'username', 'password', 'space_id',
-                           'parent_page_id', 'page_title_suffix']
+        required_fields = ['confluence_url', 'confluence_username',
+                           'confluence_password', 'confluence_space_id',
+                           'confluence_parent_page_id',
+                           'confluence_page_title_suffix']
 
         for key in required_fields:
-            if not self.confluence.get(key):
-                missing_fields.append("confluence_{}".format(key))
+            if not getattr(self, key):
+                missing_fields.append(key)
 
         if missing_fields:
             raise ValueError("The following configuration fields are "

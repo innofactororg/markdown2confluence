@@ -1,4 +1,4 @@
-from markdown2confluence.publisher import ConfluencePublisher as Publisher
+from markdown2confluence.confluence import ConfluencePublisher as Publisher
 from markdown2confluence.parser import MarkdownParser as Parser
 from markdown2confluence.logo import LOGO_TEXT
 from markdown2confluence.util import Logger
