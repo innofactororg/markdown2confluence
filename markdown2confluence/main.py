@@ -6,20 +6,19 @@ from markdown2confluence.config import Config
 
 import importlib.metadata
 
-config = Config()
 logger = Logger("main").get_logger()
+version = importlib.metadata.version("markdown2confluence")
 
 
 def logo_and_version():
-    print(LOGO_TEXT)
-    version = importlib.metadata.version("markdown2confluence")
-    print(f"Version: {version}\n")
+    logger.info(LOGO_TEXT)
 
 
 def main():
     logo_and_version()
-    logger.info("Started markdown2confluence")
+    logger.info(f"Started markdown2confluence version: {version}")
 
+    config = Config()
     directory = config.markdown_folder
 
     logger.info("Parsing folder %s", directory)

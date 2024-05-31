@@ -57,7 +57,6 @@ class Config:
         )
 
         self.validate()
-        logger.debug("initialized logger with config:", self)
 
     def validate(self):
         missing_fields = []

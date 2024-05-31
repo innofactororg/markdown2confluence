@@ -8,7 +8,7 @@ class Logger:
         self,
         name: str,
         log_file: str = 'markdown2confluence.log',
-        level: int = logging.DEBUG if os.getenv("DEBUG") else logging.ERROR
+        level: int = logging.DEBUG if os.getenv("DEBUG") else logging.INFO
     ):
         """
         Initialize the Logger with a specified name and log file.
