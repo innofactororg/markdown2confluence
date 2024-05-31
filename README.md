@@ -1,5 +1,9 @@
 # markdown2confluence
 
+[![Tests](https://github.com/innofactororg/markdown2confluence/actions/workflows/test.yaml/badge.svg)](https://github.com/innofactororg/markdown2confluence/actions/workflows/test.yaml)
+![Python](https://img.shields.io/badge/python-3.12-blue.svg)
+[![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/)
+
 Convert your Markdown files into Confluence pages with ease using the `markdown2confluence` script. It uploads all files from a specified Markdown directory to a Confluence space, applying a specific page label and maintaining the folder hierarchy as page structure.
 
 ## Prerequisites
