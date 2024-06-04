@@ -196,7 +196,47 @@ class TestMarkdownParser(unittest.TestCase):
         ]
         self.assertEqual(result, expected)
 
+    def test_get_relative_path_as_list(self):
+        base_directory = '/home/user/project'
+        file_path = '/home/user/project/docs/file.md'
+        expected = ['docs', 'file.md']
+        result = self.parser._get_relative_path_as_list(
+            file_path, base_directory)
+        self.assertEqual(result, expected)
+
+        file_path = '/home/user/project/docs/subdir/file.md'
+        expected = ['docs', 'subdir', 'file.md']
+        result = self.parser._get_relative_path_as_list(
+            file_path, base_directory)
+        self.assertEqual(result, expected)
+
+        file_path = '/home/user/project/file.md'
+        expected = ['file.md']
+        result = self.parser._get_relative_path_as_list(
+            file_path, base_directory)
+        self.assertEqual(result, expected)
+
+        file_path = '/home/user/another_project/file.md'
+        expected = ['..', 'another_project', 'file.md']
+        result = self.parser._get_relative_path_as_list(
+            file_path, base_directory)
+        self.assertEqual(result, expected)
+
+    @mock.patch('os.path.exists')
+    @mock.patch('builtins.open', new_callable=mock.mock_open, read_data='test content')
+    def test_read_file_content_success(self, mock_open, mock_exists):
+        mock_exists.return_value = True
+        result = self.parser._read_file_content('/path/to/file.md')
+        mock_open.assert_called_once_with(
+            '/path/to/file.md', 'r', encoding='utf-8')
+        self.assertEqual(result, 'test content')
+
+    @mock.patch('os.path.exists')
+    def test_read_file_content_file_not_found(self, mock_exists):
+        mock_exists.return_value = False
+        with self.assertRaises(FileNotFoundError):
+            self.parser._read_file_content('/path/to/nonexistent.md')
+
 
 if __name__ == '__main__':
     unittest.main()
-
