@@ -81,8 +81,3 @@ class TestContentTree(unittest.TestCase):
         self.tree.add_node(['level1', 'level2'], content='second')
         node = self.tree.find_node(['level1', 'level2'])
         self.assertEqual(node.content, 'second')
-
-
-if __name__ == '__main__':
-    unittest.main()
-

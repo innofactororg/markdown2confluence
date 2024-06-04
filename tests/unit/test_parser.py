@@ -236,7 +236,3 @@ class TestMarkdownParser(unittest.TestCase):
         mock_exists.return_value = False
         with self.assertRaises(FileNotFoundError):
             self.parser._read_file_content('/path/to/nonexistent.md')
-
-
-if __name__ == '__main__':
-    unittest.main()
