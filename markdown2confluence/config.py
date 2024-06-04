@@ -41,6 +41,10 @@ class Config:
             os.environ.get('CONFLUENCE_PAGE_LABEL') or
             'markdown2confluence'
         )
+        self.confluence_root_page = (
+            args.confluence_root_page or
+            os.environ.get('CONFLUENCE_ROOT_PAGE')
+        )
 
         self.markdown_folder = (
             args.markdown_folder or
@@ -98,7 +102,15 @@ def parse_args():
         help="Confluence space key")
     parser.add_argument(
         '--confluence-parent-page-id',
-        help="Parent page ID under which to add the new page")
+        help="Parent page ID under which to add all top-level pages")
+    parser.add_argument(
+        '--confluence-page-label',
+        help=("Label to assign to Confluence pages managed by "
+              "markdown2confluence"))
+    parser.add_argument(
+        '--confluence-root-page',
+        help=("Add a top-level page under which all pages will be organized.")
+    )
     parser.add_argument(
         '--markdown-folder',
         help="File or folder containing Markdown files to publish")
@@ -112,9 +124,5 @@ def parse_args():
         '--confluence-page-title-suffix',
         help="Suffix for Confluence page titles, to denote pages "
              "managed by markdown2confluence")
-    parser.add_argument(
-        '--confluence-page-label',
-        help=("Label to assign to Confluence pages managed by "
-              "markdown2confluence"))
 
     return parser.parse_args()

@@ -50,22 +50,16 @@ class ConfluencePublisher(Publisher):
         for page in self.stale_pages:
             page_id = page['content']['id']
             title = page['content']['title']
-            labels = page.get('metadata', {}).get('labels', [])
 
             if not title.endswith(self.suffix):
                 logger.warning("Skipping deletion of unmanaged page %s", title)
-                continue
-
-            if self.label not in labels:
-                logger.warning("Skipping deletion of page %s missing label %s",
-                               title, self.label)
                 continue
 
             self.confluence.remove_page(page_id)
             logger.info("Deleted unmanaged page %s", title)
 
     def publish_node(self, node: ContentNode, parent_id: str | None) -> str:
-        identifier = f"{node.name}{node.parent.name or ''}"
+        identifier = f"{node.name}{node.parent.name if node.parent else None}{self.config.confluence_root_page}"
         hash = hashlib.md5(identifier.encode('utf-8')).hexdigest()[:3]
 
         title = f"{node.name} #{hash} {self.suffix}"
@@ -159,4 +153,3 @@ class ConfluencePublisher(Publisher):
                 page_id=page_id
             )
             logger.info("Attached file %s to page ID %s", file, page_id)
-

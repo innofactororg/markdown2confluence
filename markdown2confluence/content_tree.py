@@ -22,6 +22,10 @@ class ContentNode:
     def is_root(self) -> bool:
         return self.parent is None
 
+    def _set_name(self, name: str):
+        self.name = name
+        return
+
     def __str__(self, level: int = 0) -> str:
         ret = "\t" * level + repr(self.name) + "\n"
         for child in self.children.values():
@@ -63,6 +67,8 @@ class ContentTree:
                 return None
         return current_node
 
+    def rename_root(self, name: str):
+        self.root._set_name(name)
+
     def __str__(self) -> str:
         return str(self.root)
-
