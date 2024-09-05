@@ -80,7 +80,8 @@ class ConfluencePublisher(Publisher):
                 f"Found no existing page for title {title}")
             page_id = self._create_page(title, content, parent_page, node)
 
-        self._attach_files(page_id, node)
+        if node.metadata:
+            self._attach_files(page_id, node.metadata.get('attachments', []))
         return str(page_id)
 
     def _get_existing_page_id(self, title: str) -> str | None:
@@ -143,13 +144,17 @@ class ConfluencePublisher(Publisher):
                 logger.error("HTTP error occurred: %s", e.response.text)
                 raise
 
-    def _attach_files(self, page_id: str, node: ContentNode):
-        if not node.metadata:
-            return
+    def _attach_files(self, page_id: str, attachments: list[dict]):
+        for attachment in attachments:
+            logger.debug(attachment)
 
-        for file in node.metadata.get('attachments', []):
+            name = attachment['reference']
+            filename = attachment['file_path']
+
             self.confluence.attach_file(
-                filename=file,
-                page_id=page_id
+                filename=filename,
+                name=name,
+                page_id=page_id,
             )
-            logger.info("Attached file %s to page ID %s", file, page_id)
+            logger.info("Attached file %s with reference %s to page ID %s",
+                        filename, name, page_id)

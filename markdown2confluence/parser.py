@@ -23,7 +23,13 @@ class MarkdownParser(Parser):
         for file_path in self._get_markdown_files(directory):
             content = self._read_file_content(file_path)
             path_list = self._get_relative_path_as_list(file_path, directory)
-            attachments = self._get_media_references(content)
+            attachments = []
+            for ref in self._get_media_references(content):
+                file_path = os.path.join(directory, ref)
+                attachments.append({
+                    "reference": ref,
+                    "file_path": file_path,
+                })
 
             content_tree.add_node(
                 path_list=path_list,
