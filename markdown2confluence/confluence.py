@@ -1,4 +1,4 @@
-from atlassian import Confluence
+from markdown2confluence.api import MinimalConfluence as Confluence
 import requests
 import hashlib
 
@@ -19,7 +19,6 @@ class ConfluencePublisher(Publisher):
             url=self.config.confluence_url,
             username=self.config.confluence_username,
             password=self.config.confluence_password,
-            cloud=True
         )
         self.suffix = self.config.confluence_page_title_suffix
         self.label = self.config.confluence_page_label
@@ -41,15 +40,16 @@ class ConfluencePublisher(Publisher):
             f"AND label='{self.label}' "
             f"AND title~'{self.suffix}'"
         )
-        self.stale_pages: list[dict[str, any]] = self.confluence.cql(
-            cql, start=0, limit=None).get('results', [])
+        self.stale_pages: list[dict[str, any]] = self.confluence.search(
+            cql).get('results', [])
         logger.info("Fetched %d stale pages", len(self.stale_pages))
+        logger.debug("Stale pages: %s", self.stale_pages)
 
     def post_publish_hook(self):
         logger.debug(f"Found {len(self.stale_pages)} remaining stale pages")
         for page in self.stale_pages:
-            page_id = page['content']['id']
-            title = page['content']['title']
+            page_id = page['id']
+            title = page['title']
 
             if not title.endswith(self.suffix):
                 logger.warning("Skipping deletion of unmanaged page %s", title)
@@ -70,11 +70,12 @@ class ConfluencePublisher(Publisher):
             else self.config.confluence_parent_page_id
         )
 
-        page_id = self._get_existing_page_id(title)
-        if page_id:
+        page = self._get_existing_page(title)
+        if page and page['id']:
             logger.debug(
-                f"Found existing page: {page_id} matching title {title}")
-            self._update_page(page_id, title, content, parent_page, node)
+                f"Found existing page: {page['id']} matching title {title}")
+            self._update_page(page['id'], title, content,
+                              parent_page, node)
         else:
             logger.debug(
                 f"Found no existing page for title {title}")
@@ -84,11 +85,11 @@ class ConfluencePublisher(Publisher):
             self._attach_files(page_id, node.metadata.get('attachments', []))
         return str(page_id)
 
-    def _get_existing_page_id(self, title: str) -> str | None:
+    def _get_existing_page(self, title: str) -> dict | None:
         for page in self.stale_pages:
-            if page['content']['title'] == title:
+            if page['title'] == title:
                 self.stale_pages.remove(page)
-                return page['content']['id']
+                return page
         return None
 
     def _create_page(self, title: str, content: str, parent_id: int | None,
@@ -122,15 +123,16 @@ class ConfluencePublisher(Publisher):
                      parent_id: int | None, node: ContentNode):
         logger.debug(f"updating page {node.name} with parent {page_id}")
         try:
+            page = self.confluence.get_page_by_id(page_id)
+            version = int(page['version']['number'] +
+                          1) if 'version' in page else 1
+            print("page: ", page, "version: ", version)
             self.confluence.update_page(
                 page_id=page_id,
                 title=title,
                 body=content,
                 parent_id=parent_id,
-                type='page',
-                representation='storage',
-                minor_edit=False,
-                full_width=False
+                version=version,
             )
             self.confluence.set_page_label(page_id, self.label)
             logger.info("Updated page %s with ID %s and label %s",

@@ -36,34 +36,77 @@ class MinimalConfluence:
     def _put(self, path: str, **kwargs):
         return self._request('PUT', path, **kwargs)
 
-    def search(self, cql: str | None):
-        # Add logic to perform a CQL search in Confluence
-        pass
+    def search(self, cql: str):
+        path = 'rest/api/content/search'
+        params = {'cql': cql}
+        return self._get(path, params=params)
+
+    def get_page_by_id(self, page_id: str):
+        path = f'rest/api/content/{page_id}'
+        return self._get(path)
 
     def create_page(self, space: str, title: str, body: str,
-                    parent_id: str | None):
-        # Add logic to create a page in Confluence
-        pass
+                    parent_id: str):
+        path = 'rest/api/content'
+        data = {
+            'type': 'page',
+            'title': title,
+            'space': {'key': space},
+            'body': {
+                'storage': {
+                    'value': body,
+                    'representation': 'storage'
+                }
+            }
+        }
+        if parent_id:
+            data['ancestors'] = [{'id': parent_id}]
+        return self._post(path, json=data)
 
-    def update_page(self, page_id: str, title: str, body: str,
-                    version: int | None):
-        # Add logic to update a page in Confluence
-        pass
+    def update_page(self, page_id: str, title: str, parent_id: int,
+                    body: str, version: int):
+        path = f'rest/api/content/{page_id}'
+        print("version is: ", version, type(version))
+        data = {
+            'id': page_id,
+            'status': 'current',
+            'title': title,
+            'type': 'page',
+            'parentId': parent_id,
+            'version': {'number': version},
+            'body': {
+                'storage': {
+                    'value': body,
+                    'representation': 'storage'
+                }
+            }
+        }
+        return self._put(path, json=data)
 
-    def remove_page(self, page_id: str | None):
-        # Add logic to remove a page in Confluence
-        pass
+    def remove_page(self, page_id: str):
+        path = f'rest/api/content/{page_id}'
+        return self._request('DELETE', path)
 
     def create_attachment(self, page_id: str, file_path: str,
-                          comment: str | None):
-        # Add logic to create an attachment in Confluence
-        pass
+                          comment: str):
+        path = f'rest/api/content/{page_id}/child/attachment'
+        files = {'file': open(file_path, 'rb')}
+        params = {'comment': comment} if comment else {}
+        return self._post(path, files=files, params=params)
 
-    def get_attachments(self, page_id: str | None):
-        # Add logic to get attachments from a page in Confluence
-        pass
+    def get_attachments(self, page_id: str):
+        path = f'rest/api/content/{page_id}/child/attachment'
+        return self._get(path)
 
     def update_attachment(self, attachment_id: str, file_path: str,
-                          comment: str | None):
-        # Add logic to update an attachment in Confluence
-        pass
+                          comment: str):
+        path = f'rest/api/content/{attachment_id}/data'
+        files = {'file': open(file_path, 'rb')}
+        params = {'comment': comment} if comment else {}
+        return self._post(path, files=files, params=params)
+
+    # TODO: validate
+    def set_page_label(self, page_id: str, label: str):
+        path = f'rest/api/content/{page_id}/label'
+        data = {'prefix': 'global', 'name': label}
+        return self._post(path, json=data)
