@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "markdown2confluence"
+version = "0.2.0-rc.5"
+description = "A tool to publish markdown to Confluence pages"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    { name="Otto Lote", email="otto.lote@innofactor.com" }
+]
+
+dependencies = [
+    # List your dependencies here
+    # "requests>=2.23.0",
+    # "beautifulsoup4>=4.9.0"
+]
+
+[project.scripts]
+markdown2confluence = "markdown2confluence.main:main_function"
