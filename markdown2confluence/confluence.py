@@ -20,6 +20,18 @@ class ConfluencePublisher(Publisher):
             username=self.config.confluence_username,
             password=self.config.confluence_password,
         )
+
+        self.space_id: str = self.config.confluence_space_id
+        self.space_key: str = self.config.confluence_space_key
+
+        if not self.space_id and self.space_key:
+            self.space_id = self.confluence.get_space_id_from_key(
+                self.space_key)
+
+        if not self.space_key and self.space_id:
+            self.space_key = self.confluence.get_space_key_from_id(
+                self.space_id)
+
         self.suffix = self.config.confluence_page_title_suffix
         self.label = self.config.confluence_page_label
         self.autogen_notice = (
@@ -36,7 +48,7 @@ class ConfluencePublisher(Publisher):
 
     def pre_publish_hook(self):
         cql = (
-            f"space='{self.config.confluence_space_id}' "
+            f"space='{self.space_key}' "
             f"AND label='{self.label}' "
             f"AND title~'{self.suffix}'"
         )
@@ -71,18 +83,18 @@ class ConfluencePublisher(Publisher):
         )
 
         page = self._get_existing_page(title)
-        if page and page['id']:
+        if page:
+            page_id = page['id']
             logger.debug(
-                f"Found existing page: {page['id']} matching title {title}")
-            self._update_page(page['id'], title, content,
-                              parent_page, node)
+                f"Found existing page: {page_id} matching title {title}")
+            self._update_page(page_id, title, content, parent_page, node)
         else:
-            logger.debug(
-                f"Found no existing page for title {title}")
+            logger.debug(f"Found no existing page for title {title}")
             page_id = self._create_page(title, content, parent_page, node)
 
         if node.metadata:
-            self._attach_files(page_id, node.metadata.get('attachments', []))
+            self._attach_files(
+                page_id, node.metadata.get('attachments', []))
         return str(page_id)
 
     def _get_existing_page(self, title: str) -> dict | None:
@@ -97,14 +109,10 @@ class ConfluencePublisher(Publisher):
         logger.debug(f"creating page {title} with parent id {parent_id}")
         try:
             page = self.confluence.create_page(
-                space=self.config.confluence_space_id,
+                space=self.space_id,
                 title=title,
                 body=content,
                 parent_id=parent_id,
-                type='page',
-                representation='storage',
-                editor='v2',
-                full_width=False
             )
             page_id = str(page['id'])
             self.confluence.set_page_label(page_id, self.label)
@@ -126,7 +134,6 @@ class ConfluencePublisher(Publisher):
             page = self.confluence.get_page_by_id(page_id)
             version = int(page['version']['number'] +
                           1) if 'version' in page else 1
-            print("page: ", page, "version: ", version)
             self.confluence.update_page(
                 page_id=page_id,
                 title=title,
@@ -150,13 +157,13 @@ class ConfluencePublisher(Publisher):
         for attachment in attachments:
             logger.debug(attachment)
 
-            name = attachment['reference']
-            filename = attachment['file_path']
+            reference = attachment['reference']
+            file_path = attachment['file_path']
 
-            self.confluence.attach_file(
-                filename=filename,
-                name=name,
+            self.confluence.create_or_update_attachment(
+                file_path=file_path,
                 page_id=page_id,
+                comment=reference,
             )
             logger.info("Attached file %s with reference %s to page ID %s",
-                        filename, name, page_id)
+                        file_path, reference, page_id)
